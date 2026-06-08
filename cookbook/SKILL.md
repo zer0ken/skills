@@ -54,12 +54,12 @@ index is never stale.
 ## Output Format
 
 ```
-요청 주제: <query or inferred topic>
+Topic: <query or inferred topic>
 
 1. <Title>
-   - 카테고리: <dir/category>
-   - 링크: https://github.com/anthropics/claude-cookbooks/blob/main/<path>
-   - 설명: <one line>
+   - Category: <dir/category>
+   - Link: https://github.com/anthropics/claude-cookbooks/blob/main/<path>
+   - Description: <one line>
 
 2. ...
 ```
