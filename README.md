@@ -23,3 +23,25 @@ curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/instal
 
 Re-running the command updates to the latest version. Inside Claude Code, run
 `/cookbook update` to check whether a newer version is available.
+
+## render-formulas
+
+Renders a LaTeX math formula to a PNG (via [pnglatex](https://github.com/mneri/pnglatex))
+and opens it in the OS default image viewer. Invoked as `/render-formulas <formula>`.
+Needs `latex`, `dvipng`, and `imagemagick` on PATH.
+
+**Install / update:**
+
+PowerShell (Windows)
+```powershell
+irm https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas/install.ps1 | iex
+```
+
+Bash (macOS / Linux / WSL)
+```bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas/install.sh | bash
+```
+
+Re-running the command updates `SKILL.md` and the bundled scripts to the latest version.
+Inside Claude Code, run `/render-formulas update` to check whether a newer version is
+available.
