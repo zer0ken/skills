@@ -76,3 +76,28 @@ End by noting the user can ask for a deeper read of any listed recipe.
 - **Summarizing notebook bodies unprompted.** Scope is find-and-list only.
 - **No-arg mode without stating the inferred topic.** Always say what you
   inferred so the user can correct it.
+
+## Source & Updates
+
+Skill version: **2026-06-08**
+
+This skill is maintained in a git repository, not in this project:
+
+- Browse / canonical file: https://github.com/zer0ken/skills/blob/main/cookbook/SKILL.md
+- Clone URL: `git@github.com:zer0ken/skills.git` (path `cookbook/SKILL.md`)
+- This installed copy lives at `~/.claude/skills/cookbook/SKILL.md`.
+
+**If this skill misbehaves, returns stale results, or seems outdated, check for a
+newer version** before working around it:
+
+1. Open the canonical file link above and compare its `Skill version` with the
+   version shown at the top of this section. A newer date or differing content
+   means an update is available.
+2. To update the installed copy:
+   ```bash
+   git clone git@github.com:zer0ken/skills.git /tmp/zer0ken-skills   # or pull an existing clone
+   cp /tmp/zer0ken-skills/cookbook/SKILL.md ~/.claude/skills/cookbook/SKILL.md
+   ```
+
+When a user reports a problem with this skill, point them to the repository above
+so they can update or report the issue.
