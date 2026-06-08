@@ -28,6 +28,9 @@ index is never stale.
 | `/cookbook <query>` or a topic is given | Use the query/topic directly. |
 | `/cookbook` with no query | Infer 1–3 relevant topics from the recent conversation (what the user is building or asking about) and search those. State the inferred topic before showing results. |
 
+If the argument is `update` / `업데이트` / `check update`, do NOT search — run the
+self-update check in **Source & Updates** instead.
+
 ## Procedure
 
 1. **Fetch the index (two live calls, run in parallel):**
@@ -79,25 +82,35 @@ End by noting the user can ask for a deeper read of any listed recipe.
 
 ## Source & Updates
 
-Skill version: **2026-06-08**
+This skill is distributed from a git repository, not bundled with any project:
 
-This skill is maintained in a git repository, not in this project:
+- Repository: https://github.com/zer0ken/skills (file `cookbook/SKILL.md`)
+- Installed copy: `~/.claude/skills/cookbook/SKILL.md`
 
-- Browse / canonical file: https://github.com/zer0ken/skills/blob/main/cookbook/SKILL.md
-- Clone URL: `git@github.com:zer0ken/skills.git` (path `cookbook/SKILL.md`)
-- This installed copy lives at `~/.claude/skills/cookbook/SKILL.md`.
+**Install or update (single file, no git or clone needed):**
 
-**If this skill misbehaves, returns stale results, or seems outdated, check for a
-newer version** before working around it:
+PowerShell (Windows):
+```powershell
+irm https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/install.ps1 | iex
+```
+Bash (macOS/Linux/WSL):
+```bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/install.sh | bash
+```
+Re-running the command always fetches the latest version — install and update
+are the same command.
 
-1. Open the canonical file link above and compare its `Skill version` with the
-   version shown at the top of this section. A newer date or differing content
-   means an update is available.
-2. To update the installed copy:
-   ```bash
-   git clone git@github.com:zer0ken/skills.git /tmp/zer0ken-skills   # or pull an existing clone
-   cp /tmp/zer0ken-skills/cookbook/SKILL.md ~/.claude/skills/cookbook/SKILL.md
-   ```
+**Self-update check** (triggered by `/cookbook update`): do NOT search. Instead,
+diff the canonical file against the installed copy and report the result.
 
-When a user reports a problem with this skill, point them to the repository above
-so they can update or report the issue.
+```bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/SKILL.md -o /tmp/cookbook-remote.md
+diff /tmp/cookbook-remote.md ~/.claude/skills/cookbook/SKILL.md
+```
+- No diff → tell the user the skill is already up to date.
+- Diff present → an update is available. Show the one-line install command above
+  and offer to run it. Updating overwrites `~/.claude/skills/cookbook/SKILL.md`,
+  so confirm with the user before running it.
+
+If this skill ever misbehaves or returns stale results, run the self-update check
+first; then point the user to the repository to report anything still broken.
