@@ -15,6 +15,7 @@ New-Item -ItemType Directory -Force -Path (Join-Path $dest 'scripts') | Out-Null
 Invoke-WebRequest -Uri "$base/SKILL.md"                -OutFile (Join-Path $dest 'SKILL.md')
 Invoke-WebRequest -Uri "$base/scripts/pnglatex"        -OutFile (Join-Path $dest 'scripts\pnglatex')
 Invoke-WebRequest -Uri "$base/scripts/show-formula.sh" -OutFile (Join-Path $dest 'scripts\show-formula.sh')
+Invoke-WebRequest -Uri "$base/scripts/show-passage.sh" -OutFile (Join-Path $dest 'scripts\show-passage.sh')
 
 Write-Host "render-formulas skill installed/updated at $dest"
 Write-Host "One-time toolchain: scoop install latex imagemagick   (needs latex, dvipng, imagemagick on PATH)"

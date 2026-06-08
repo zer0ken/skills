@@ -7,9 +7,18 @@ description: Use when the user wants to see, preview, or generate an image of a 
 
 ## Overview
 
-Render a LaTeX math formula to a PNG with [pnglatex](https://github.com/mneri/pnglatex)
-(bundled in `scripts/pnglatex`), then surface it **two ways**: open it in the OS image
-viewer **for the user**, and **Read it yourself** to confirm it rendered.
+Render LaTeX math to a PNG, then surface it **two ways**: open it in the OS image viewer
+**for the user**, and **Read it yourself** to confirm it rendered.
+
+**Render in context (recommended).** Prefer rendering the explanatory passage — prose with
+inline `$..$` and display `\[..\]` math — as **one readable image**, rather than one bare
+formula per image. A formula shown together with the sentence that motivates it is far
+easier to follow. Use `show-passage.sh` for that; reach for `show-formula.sh` only when a
+single standalone formula is genuinely all that's wanted.
+
+**Write the prose in the user's Claude language setting** (e.g. Korean). `show-passage.sh`
+renders via XeLaTeX + `kotex`, so Hangul and other scripts typeset correctly while math
+stays in Computer Modern.
 
 If invoked with the argument `update` / `업데이트`: skip rendering and run the
 **self-update check** in [Source & Updates](#source--updates) instead.
@@ -22,18 +31,32 @@ If invoked with the argument `update` / `업데이트`: skip rendering and run t
 
 **Not for:** full LaTeX documents (use `pdflatex` directly), or non-math text.
 
-## Quick Start
+## Rendering
 
-One command renders with good defaults (display style, common math packages, 300 DPI)
-and opens the result in the OS default viewer:
+Both wrappers render, open the OS viewer, and print the PNG's absolute path.
+**Then Read that PNG** so it also appears in the session.
+
+**Recommended — a passage in context** (`show-passage.sh`): prose + inline `$..$` and
+display `\[..\]` math, wrapped to a width, as one image. Pass the body as an argument, or
+`-` to read it from stdin (use a quoted heredoc so the shell does not expand `$`):
+
+```bash
+cat <<'TEX' | bash ~/.claude/skills/render-formulas/scripts/show-passage.sh - ./tmp/latex/var.png 13cm
+The \textbf{sample variance} of $x_1,\dots,x_n$ with mean
+$\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i$ is
+\[ s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar{x})^2 . \]
+The divisor $n-1$ (Bessel's correction) corrects for using $\bar{x}$ in place of $\mu$.
+TEX
+```
+Args: `show-passage.sh "<body>"|- [output.png] [width]` (default width `14cm`).
+
+**Quick single formula** (`show-formula.sh`): math only, display style, good defaults.
 
 ```bash
 bash ~/.claude/skills/render-formulas/scripts/show-formula.sh "\sum_{i=0}^n i = \frac{n(n+1)}{2}"
 ```
 
-It prints the PNG's absolute path. **Then Read that PNG** so it also appears in the session.
-
-For more control, call pnglatex directly (see Options) and open the file yourself.
+For finer control over a single formula, call `pnglatex` directly (see Options).
 
 ## How Results Are Shown (UX)
 
@@ -63,16 +86,19 @@ bytes. Offer them to the user; don't run them to "display" inline yourself.
 
 ## Dependencies
 
-Needs `latex`, `dvipng`, and `imagemagick` on PATH. `optipng` (image optimization, `-O`)
-is optional.
+Single formula (`show-formula.sh` / pnglatex) needs `latex`, `dvipng`, `imagemagick`.
+Passage (`show-passage.sh`) additionally needs `xelatex` (bundled with any TeX distro),
+`kotex` (auto-installed by MiKTeX/TeX Live on first use), and **Ghostscript** (for the
+PDF→PNG step). `optipng` (`-O`) is optional.
 
 | OS | One-time install |
 |----|------------------|
-| Windows | `scoop install latex imagemagick` then `initexmf --set-config-value '[MPM]AutoInstall=1'` |
-| macOS | `brew install --cask mactex-no-gui && brew install imagemagick` (`dvipng` via `tlmgr install dvipng`) |
-| Linux | `sudo apt install texlive dvipng imagemagick` |
+| Windows | `scoop install latex imagemagick ghostscript` then `initexmf --set-config-value '[MPM]AutoInstall=1'` |
+| macOS | `brew install --cask mactex-no-gui && brew install imagemagick ghostscript` (`dvipng` via `tlmgr install dvipng`) |
+| Linux | `sudo apt install texlive-xetex texlive-lang-korean dvipng imagemagick ghostscript` |
 
-Verify: `command -v latex dvipng`.
+Verify: `command -v latex dvipng xelatex gs`. The default Hangul font is `Malgun Gothic`
+(Windows); on other OSes set another installed Korean font in `show-passage.sh`.
 
 ## Options (pnglatex)
 
@@ -137,7 +163,7 @@ canonical files against the installed copies and report:
 
 ```bash
 base=https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas
-for f in SKILL.md scripts/pnglatex scripts/show-formula.sh; do
+for f in SKILL.md scripts/pnglatex scripts/show-formula.sh scripts/show-passage.sh; do
   curl -fsSL "$base/$f" -o "/tmp/rf-remote-$(basename "$f")"
   diff "/tmp/rf-remote-$(basename "$f")" "$HOME/.claude/skills/render-formulas/$f" \
     && echo "$f: up to date" || echo "$f: UPDATE AVAILABLE"
