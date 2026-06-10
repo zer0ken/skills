@@ -10,16 +10,12 @@ Personal skills organized by agent runtime.
 
 ## Skills
 
-| Runtime | Skill | Description |
-|---------|-------|-------------|
-| Claude Code | [claude-cookbook](claude/claude-cookbook/) | Find Anthropic Claude Cookbook recipes for a topic. |
-| Claude Code | [openai-cookbook](claude/openai-cookbook/) | Find OpenAI Cookbook examples for a topic. |
-| Claude Code | [render-formulas](claude/render-formulas/) | Render a LaTeX formula to a PNG and open it in the image viewer. |
-| Claude Code | [uv-setup](claude/uv-setup/) | Convert a project to uv-based dependency management and enforce the uv workflow. |
-| Codex | [claude-cookbook](codex/claude-cookbook/) | Find Anthropic Claude Cookbook recipes for a topic. |
-| Codex | [openai-cookbook](codex/openai-cookbook/) | Find OpenAI Cookbook examples for a topic. |
-| Codex | [render-formulas](codex/render-formulas/) | Render a LaTeX formula to a PNG and open it in the image viewer. |
-| Codex | [uv-setup](codex/uv-setup/) | Convert a project to uv-based dependency management and enforce the uv workflow. |
+| Skill | Description | Runtimes |
+|-------|-------------|----------|
+| claude-cookbook | Find Anthropic Claude Cookbook recipes for a topic. | [Claude Code](claude/claude-cookbook/), [Codex](codex/claude-cookbook/) |
+| openai-cookbook | Find OpenAI Cookbook examples for a topic. | [Claude Code](claude/openai-cookbook/), [Codex](codex/openai-cookbook/) |
+| render-formulas | Render a LaTeX formula to a PNG and open it in the image viewer. | [Claude Code](claude/render-formulas/), [Codex](codex/render-formulas/) |
+| uv-setup | Convert a project to uv-based dependency management and enforce the uv workflow. | [Claude Code](claude/uv-setup/), [Codex](codex/uv-setup/) |
 
 ## Install / Update
 
