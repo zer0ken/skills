@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Install or update the `render-formulas` skill into the personal Claude Code skills dir.
+# Install or update the `render-formulas` skill into the personal Codex skills dir.
 # Re-running this fetches the latest version (install and update are identical).
 set -euo pipefail
 
-dest="$HOME/.claude/skills/render-formulas"
-base="https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas"
+dest="$HOME/.codex/skills/render-formulas"
+base="https://raw.githubusercontent.com/zer0ken/skills/main/codex/render-formulas"
 
 # Protect a developer's symlinked working copy from being clobbered by remote files.
 if [ -L "$dest" ]; then
@@ -25,4 +25,4 @@ echo "One-time toolchain (needs latex, dvipng, imagemagick on PATH):"
 echo "  Windows: scoop install latex imagemagick"
 echo "  macOS:   brew install --cask mactex-no-gui && brew install imagemagick"
 echo "  Linux:   sudo apt install texlive dvipng imagemagick"
-echo "Restart Claude Code (or open a new session) to pick it up."
+echo "Restart Codex (or open a new session) to pick it up."

@@ -141,18 +141,18 @@ Multi-line / alignment: `-e "align*"` with `-p amsmath`, formula using `\\` and 
 
 Distributed from a git repository, not bundled with any project:
 
-- Repository: https://github.com/zer0ken/skills (folder `render-formulas/`)
+- Repository: https://github.com/zer0ken/skills (folder `claude/render-formulas/`)
 - Installed copy: `~/.claude/skills/render-formulas/`
 
 **Install or update (no git or clone needed):**
 
 PowerShell (Windows):
 ```powershell
-irm https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas/install.ps1 | iex
+irm https://raw.githubusercontent.com/zer0ken/skills/main/claude/render-formulas/install.ps1 | iex
 ```
 Bash (macOS / Linux / WSL):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/render-formulas/install.sh | bash
 ```
 Re-running the command always fetches the latest `SKILL.md` **and** scripts — install and
 update are the same command. (The installer refuses to overwrite a symlinked install dir,
@@ -162,7 +162,7 @@ so a developer working from a cloned repo is never clobbered.)
 canonical files against the installed copies and report:
 
 ```bash
-base=https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas
+base=https://raw.githubusercontent.com/zer0ken/skills/main/claude/render-formulas
 for f in SKILL.md scripts/pnglatex scripts/show-formula.sh scripts/show-passage.sh; do
   curl -fsSL "$base/$f" -o "/tmp/rf-remote-$(basename "$f")"
   diff "/tmp/rf-remote-$(basename "$f")" "$HOME/.claude/skills/render-formulas/$f" \

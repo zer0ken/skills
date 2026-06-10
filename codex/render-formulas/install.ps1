@@ -1,10 +1,10 @@
 #!/usr/bin/env pwsh
-# Install or update the `render-formulas` skill into the personal Claude Code skills dir.
+# Install or update the `render-formulas` skill into the personal Codex skills dir.
 # Re-running this fetches the latest version (install and update are identical).
 $ErrorActionPreference = 'Stop'
 
-$dest = Join-Path $env:USERPROFILE '.claude\skills\render-formulas'
-$base = 'https://raw.githubusercontent.com/zer0ken/skills/main/render-formulas'
+$dest = Join-Path $env:USERPROFILE '.codex\skills\render-formulas'
+$base = 'https://raw.githubusercontent.com/zer0ken/skills/main/codex/render-formulas'
 
 # Protect a developer's symlinked/junctioned working copy from being clobbered.
 if ((Test-Path $dest) -and ((Get-Item $dest -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
@@ -19,4 +19,4 @@ Invoke-WebRequest -Uri "$base/scripts/show-passage.sh" -OutFile (Join-Path $dest
 
 Write-Host "render-formulas skill installed/updated at $dest"
 Write-Host "One-time toolchain: scoop install latex imagemagick   (needs latex, dvipng, imagemagick on PATH)"
-Write-Host "Restart Claude Code (or open a new session) to pick it up."
+Write-Host "Restart Codex (or open a new session) to pick it up."

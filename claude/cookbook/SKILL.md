@@ -84,18 +84,18 @@ End by noting the user can ask for a deeper read of any listed recipe.
 
 This skill is distributed from a git repository, not bundled with any project:
 
-- Repository: https://github.com/zer0ken/skills (file `cookbook/SKILL.md`)
+- Repository: https://github.com/zer0ken/skills (file `claude/cookbook/SKILL.md`)
 - Installed copy: `~/.claude/skills/cookbook/SKILL.md`
 
 **Install or update (single file, no git or clone needed):**
 
 PowerShell (Windows):
 ```powershell
-irm https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/install.ps1 | iex
+irm https://raw.githubusercontent.com/zer0ken/skills/main/claude/cookbook/install.ps1 | iex
 ```
 Bash (macOS/Linux/WSL):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/cookbook/install.sh | bash
 ```
 Re-running the command always fetches the latest version — install and update
 are the same command.
@@ -104,7 +104,7 @@ are the same command.
 diff the canonical file against the installed copy and report the result.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/cookbook/SKILL.md -o /tmp/cookbook-remote.md
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/cookbook/SKILL.md -o /tmp/cookbook-remote.md
 diff /tmp/cookbook-remote.md ~/.claude/skills/cookbook/SKILL.md
 ```
 - No diff → tell the user the skill is already up to date.
