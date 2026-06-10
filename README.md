@@ -12,9 +12,11 @@ Personal skills organized by agent runtime.
 
 | Runtime | Skill | Description |
 |---------|-------|-------------|
-| Claude Code | [cookbook](claude/cookbook/) | Find Anthropic Claude cookbook recipes for a topic. |
+| Claude Code | [claude-cookbook](claude/claude-cookbook/) | Find Anthropic Claude Cookbook recipes for a topic. |
+| Claude Code | [openai-cookbook](claude/openai-cookbook/) | Find OpenAI Cookbook examples for a topic. |
 | Claude Code | [render-formulas](claude/render-formulas/) | Render a LaTeX formula to a PNG and open it in the image viewer. |
-| Codex | [cookbook](codex/cookbook/) | Find Anthropic Claude cookbook recipes for a topic. |
+| Codex | [claude-cookbook](codex/claude-cookbook/) | Find Anthropic Claude Cookbook recipes for a topic. |
+| Codex | [openai-cookbook](codex/openai-cookbook/) | Find OpenAI Cookbook examples for a topic. |
 | Codex | [render-formulas](codex/render-formulas/) | Render a LaTeX formula to a PNG and open it in the image viewer. |
 
 ## Install / Update

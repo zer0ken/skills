@@ -1,9 +1,9 @@
 ---
-name: cookbook
-description: Use when the user invokes /cookbook or wants to find an Anthropic Claude cookbook recipe/notebook for a topic, or wants best-practice example code from the Claude cookbook. With no argument, infer a relevant topic from the conversation and search for matching best-practice recipes.
+name: claude-cookbook
+description: Use when the user invokes /claude-cookbook or wants to find an Anthropic Claude cookbook recipe/notebook for a topic, or wants best-practice example code from the Claude cookbook. With no argument, infer a relevant topic from the conversation and search for matching best-practice recipes.
 ---
 
-# Cookbook Finder
+# Claude Cookbook Finder
 
 ## Overview
 
@@ -17,7 +17,7 @@ index is never stale.
 
 ## When to Use
 
-- The user runs `/cookbook` (with or without a query).
+- The user runs `/claude-cookbook` (with or without a query).
 - The user asks "is there a cookbook for X?", "find a Claude recipe for X",
   "what's the best-practice example for X".
 
@@ -25,8 +25,8 @@ index is never stale.
 
 | Invocation | What to search for |
 |---|---|
-| `/cookbook <query>` or a topic is given | Use the query/topic directly. |
-| `/cookbook` with no query | Infer 1–3 relevant topics from the recent conversation (what the user is building or asking about) and search those. State the inferred topic before showing results. |
+| `/claude-cookbook <query>` or a topic is given | Use the query/topic directly. |
+| `/claude-cookbook` with no query | Infer 1–3 relevant topics from the recent conversation (what the user is building or asking about) and search those. State the inferred topic before showing results. |
 
 If the argument is `update` / `업데이트` / `check update`, do NOT search — run the
 self-update check in **Source & Updates** instead.
@@ -84,32 +84,32 @@ End by noting the user can ask for a deeper read of any listed recipe.
 
 This skill is distributed from a git repository, not bundled with any project:
 
-- Repository: https://github.com/zer0ken/skills (file `claude/cookbook/SKILL.md`)
-- Installed copy: `~/.claude/skills/cookbook/SKILL.md`
+- Repository: https://github.com/zer0ken/skills (file `claude/claude-cookbook/SKILL.md`)
+- Installed copy: `~/.claude/skills/claude-cookbook/SKILL.md`
 
 **Install or update (single file, no git or clone needed):**
 
 PowerShell (Windows):
 ```powershell
-irm https://raw.githubusercontent.com/zer0ken/skills/main/claude/cookbook/install.ps1 | iex
+irm https://raw.githubusercontent.com/zer0ken/skills/main/claude/claude-cookbook/install.ps1 | iex
 ```
 Bash (macOS/Linux/WSL):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/cookbook/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/claude-cookbook/install.sh | bash
 ```
 Re-running the command always fetches the latest version — install and update
 are the same command.
 
-**Self-update check** (triggered by `/cookbook update`): do NOT search. Instead,
+**Self-update check** (triggered by `/claude-cookbook update`): do NOT search. Instead,
 diff the canonical file against the installed copy and report the result.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/cookbook/SKILL.md -o /tmp/cookbook-remote.md
-diff /tmp/cookbook-remote.md ~/.claude/skills/cookbook/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/claude/claude-cookbook/SKILL.md -o /tmp/claude-cookbook-remote.md
+diff /tmp/claude-cookbook-remote.md ~/.claude/skills/claude-cookbook/SKILL.md
 ```
 - No diff → tell the user the skill is already up to date.
 - Diff present → an update is available. Show the one-line install command above
-  and offer to run it. Updating overwrites `~/.claude/skills/cookbook/SKILL.md`,
+  and offer to run it. Updating overwrites `~/.claude/skills/claude-cookbook/SKILL.md`,
   so confirm with the user before running it.
 
 If this skill ever misbehaves or returns stale results, run the self-update check

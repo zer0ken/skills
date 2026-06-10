@@ -1,9 +1,9 @@
 ---
-name: cookbook
-description: Use when the user wants to find an Anthropic Claude cookbook recipe/notebook for a topic, wants best-practice example code from the Claude cookbook, or asks for cookbook examples. With no argument, infer a relevant topic from the conversation and search for matching best-practice recipes. Also handles cookbook update / 업데이트 to self-update.
+name: claude-cookbook
+description: Use when the user wants to find an Anthropic Claude cookbook recipe/notebook for a topic, wants best-practice example code from the Claude cookbook, or asks for Claude cookbook examples. With no argument, infer a relevant topic from the conversation and search for matching best-practice recipes. Also handles claude-cookbook update / 업데이트 to self-update.
 ---
 
-# Cookbook Finder
+# Claude Cookbook Finder
 
 ## Overview
 
@@ -17,7 +17,7 @@ index is never stale.
 
 ## When to Use
 
-- The user asks to use cookbook examples, with or without a query.
+- The user asks to use Claude cookbook examples, with or without a query.
 - The user asks "is there a cookbook for X?", "find a Claude recipe for X",
   "what's the best-practice example for X".
 
@@ -84,32 +84,32 @@ End by noting the user can ask for a deeper read of any listed recipe.
 
 This skill is distributed from a git repository, not bundled with any project:
 
-- Repository: https://github.com/zer0ken/skills (file `codex/cookbook/SKILL.md`)
-- Installed copy: `~/.codex/skills/cookbook/SKILL.md`
+- Repository: https://github.com/zer0ken/skills (file `codex/claude-cookbook/SKILL.md`)
+- Installed copy: `~/.codex/skills/claude-cookbook/SKILL.md`
 
 **Install or update (single file, no git or clone needed):**
 
 PowerShell (Windows):
 ```powershell
-irm https://raw.githubusercontent.com/zer0ken/skills/main/codex/cookbook/install.ps1 | iex
+irm https://raw.githubusercontent.com/zer0ken/skills/main/codex/claude-cookbook/install.ps1 | iex
 ```
 Bash (macOS/Linux/WSL):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/codex/cookbook/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/codex/claude-cookbook/install.sh | bash
 ```
 Re-running the command always fetches the latest version — install and update
 are the same command.
 
-**Self-update check** (triggered by `cookbook update`): do NOT search. Instead,
+**Self-update check** (triggered by `claude-cookbook update`): do NOT search. Instead,
 diff the canonical file against the installed copy and report the result.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/codex/cookbook/SKILL.md -o /tmp/cookbook-remote.md
-diff /tmp/cookbook-remote.md ~/.codex/skills/cookbook/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/codex/claude-cookbook/SKILL.md -o /tmp/claude-cookbook-remote.md
+diff /tmp/claude-cookbook-remote.md ~/.codex/skills/claude-cookbook/SKILL.md
 ```
 - No diff → tell the user the skill is already up to date.
 - Diff present → an update is available. Show the one-line install command above
-  and offer to run it. Updating overwrites `~/.codex/skills/cookbook/SKILL.md`,
+  and offer to run it. Updating overwrites `~/.codex/skills/claude-cookbook/SKILL.md`,
   so confirm with the user before running it.
 
 If this skill ever misbehaves or returns stale results, run the self-update check
