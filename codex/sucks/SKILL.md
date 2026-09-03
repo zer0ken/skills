@@ -3,7 +3,7 @@ name: sucks
 description: "한국어 기술 문서의 문체 규칙. README, 설계 문서, 이슈, PR 본문, 슬라이드, 주석 등 한국어 산문을 쓰거나 고칠 때 사용한다. 번역투 AI 문서체와 짧게 끊어 치는 블로그체를 모두 배제하고 중립 기술 문어체로 쓴다."
 metadata:
   author: hrlee
-  version: "1.2.0"
+  version: "1.3.0"
   domain: writing
   triggers: 한국어 문서, README, 문체, 말투, 번역투, 산문, 기술 문서, korean prose, doc tone
   role: guardian
@@ -32,7 +32,7 @@ metadata:
 - 슬라이드 본문
 - 코드 주석
 
-사용자에게 보내는 채팅 답변에는 적용하지 않는다. 답변은 전역 AGENTS.md의 명료체 규칙을 따른다.
+이 스킬은 다른 글쓰기 규칙과 함께 적용한다. 전역 AGENTS.md의 명료체 규칙처럼 특정한 글에 따로 정해진 규칙이 있어도 이 스킬이 물러나지 않는다. 두 규칙이 한 문장에서 서로 어긋날 때만 다른 규칙을 따르고, 그 밖의 모든 곳에는 이 스킬을 최대한 강하게 적용한다.
 
 ## 제목
 
