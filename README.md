@@ -13,7 +13,6 @@ Personal skills organized by agent runtime.
 | Skill | Description |
 |-------|-------------|
 | [claude-cookbook](claude/claude-cookbook/SKILL.md) | Find Anthropic Claude Cookbook recipes for a topic. |
-| [korean-mode](claude/korean-mode/SKILL.md) | Toggle a mode that forces Korean, 5-sentence-max replies with thinking off where the model allows it. |
 | [openai-cookbook](claude/openai-cookbook/SKILL.md) | Find OpenAI Cookbook examples for a topic. |
 | [render-formulas](claude/render-formulas/SKILL.md) | Render a LaTeX formula to a PNG and open it in the image viewer. |
 | [sucks](claude/sucks/SKILL.md) | Korean technical prose style rules for docs, issues, PR bodies, and comments. |
