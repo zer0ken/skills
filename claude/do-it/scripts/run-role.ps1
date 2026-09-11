@@ -30,21 +30,22 @@ else {
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Result) | Out-Null
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $Log) | Out-Null
 
-# npm 래퍼(.ps1/.cmd)는 종료 코드를 $LASTEXITCODE로 노출하지 못하므로
-# 실제 네이티브 진입점(node + cli.js, claude.exe)으로 우회한다.
+# Windows의 npm 래퍼(.ps1/.cmd)는 종료 코드를 $LASTEXITCODE로 노출하지 못하므로
+# 실제 네이티브 진입점(node + cli.js)으로 우회한다. macOS와 Linux에서는 실행 파일을 그대로 쓴다.
 function Get-NativeEntry([string]$Name) {
   $cmd = Get-Command $Name -ErrorAction SilentlyContinue
   if (-not $cmd) { throw "CLI를 찾을 수 없습니다: $Name" }
   $src = $cmd.Source
   if ($src -match '(?i)\.(ps1|cmd|bat)$') {
     $npm = Split-Path -Parent $src
-    $rel = switch ($Name) {
-      'codex' { 'node_modules\@openai\codex\bin\codex.js' }
-      'pi'    { 'node_modules\@earendil-works\pi-coding-agent\dist\cli.js' }
-      default { '' }
+    $segments = switch ($Name) {
+      'codex' { @('node_modules', '@openai', 'codex', 'bin', 'codex.js') }
+      'pi'    { @('node_modules', '@earendil-works', 'pi-coding-agent', 'dist', 'cli.js') }
+      default { @() }
     }
-    if ($rel) {
-      $js = Join-Path $npm $rel
+    if ($segments.Count -gt 0) {
+      $js = $npm
+      foreach ($seg in $segments) { $js = Join-Path $js $seg }
       if (Test-Path -LiteralPath $js) {
         return @{ Exe = $null; Script = $js }
       }

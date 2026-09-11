@@ -64,20 +64,21 @@ codex를 선택하는 저수준 신호는 다음과 같다.
 
 ## 실행 구조
 
-### tmux와 psmux
+### tmux
 
-이 환경의 tmux는 psmux(Windows용 tmux 대안)다. 표준 tmux와 문법이 다르다. 이 스킬은 다음 명령만 사용한다.
+이 스킬은 tmux 세션에서 역할 윈도우를 띄운다. Windows에서는 psmux가, macOS와 Linux에서는 표준 tmux가 실행된다. launch-role.ps1이 두 종류의 문법 차이를 처리하므로 컨트롤러는 tmux 명령을 직접 다룰 필요가 없다.
+
+수동으로 확인할 때 쓰는 명령은 다음과 같다.
 
 | 작업 | 명령 |
 | --- | --- |
-| 세션 생성 | `tmux new-session -d -s <세션>` |
-| 윈도우 생성 | `tmux new-window -t <세션> -n <이름> -c <디렉터리> -- <명령...>` |
+| 세션 목록 | `tmux ls` |
 | 윈도우 목록 | `tmux list-windows -t <세션>` |
-| 윈도우 제거 | `tmux kill-window -t <세션>:<이름>` |
-| 세션 종료 | `tmux kill-session -t <세션>` |
 | 붙어서 보기 | `tmux attach -t <세션>` |
+| 화면 캡처 | `tmux capture-pane -t <세션>:<이름> -p` |
+| 세션 종료 | `tmux kill-session -t <세션>` |
 
-역할 윈도우는 실행 명령이 끝나면 닫힌다. 시작 시 `tmux set -g remain-on-exit on`을 적용해 마지막 출력을 윈도우에 남긴다. 역할 윈도우는 launch-role.ps1이 생성한다. 컨트롤러는 윈도우에 직접 키 입력을 보내지 않는다.
+역할 윈도우는 실행 명령이 끝나면 닫힌다. launch-role.ps1이 시작 시 `remain-on-exit on`을 적용해 마지막 출력을 윈도우에 남긴다. 컨트롤러는 윈도우에 직접 키 입력을 보내지 않는다.
 
 ### 파일 핸드오프
 
@@ -132,8 +133,10 @@ codex를 선택하는 저수준 신호는 다음과 같다.
 모든 스크립트 호출은 다음 형태로 한다.
 
 ```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File <스킬>/scripts/<스크립트>.ps1 <인자...>
+pwsh -NoProfile -ExecutionPolicy Bypass -File <스킬 디렉터리>/scripts/<스크립트>.ps1 <인자...>
 ```
+
+`-ExecutionPolicy Bypass`는 Windows에서만 적용된다. macOS와 Linux의 pwsh는 실행 정책을 적용하지 않아 이 인자를 무시한다.
 
 스크립트는 이 스킬 디렉터리(SKILL.md가 위치한 곳)의 `scripts/`에 있다. 설치 위치는 하네스별로 다르다. pi는 `~/.agents/skills/do-it`, claude는 `~/.claude/skills/do-it`, codex는 `~/.codex/skills/do-it`다.
 
@@ -497,7 +500,7 @@ CHANGES일 때만. 계획 문서의 어떤 부분을 어떻게 바꿔야 하는�
 
 ## 스크립트
 
-스크립트는 이 스킬 디렉터리의 `scripts/`에 있다. 컨트롤러는 `<스킬 디렉터리>/scripts/<스크립트>.ps1`을 `pwsh -NoProfile -ExecutionPolicy Bypass -File`로 호출한다.
+스크립트는 이 스킬 디렉터리의 `scripts/`에 있다. 컨트롤러는 `<스킬 디렉터리>/scripts/<스크립트>.ps1`을 `pwsh -NoProfile -ExecutionPolicy Bypass -File`로 호출한다. `-ExecutionPolicy Bypass`는 Windows 전용이며 macOS와 Linux에서는 무시된다.
 
 ### launch-role.ps1
 
@@ -571,7 +574,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File <스킬 디렉터리>/scripts/make
 
 ## 자주 틀리는 지점
 
-- tmux 명령을 표준 문법으로 쓰는 실수. psmux는 `new-window ... -- <명령>` 형태를 쓴다.
+- tmux 문법을 직접 조립하는 실수. launch-role.ps1이 psmux(Windows)와 표준 tmux(macOS/Linux)의 문법 차이를 처리한다. 컨트롤러는 스크립트를 통해서만 윈도우를 만든다.
 - 경로에 공백이 들어간 인자를 토큰으로 넘기는 실수. 실행 디렉터리와 워크트리 경로는 공백 없는 경로를 쓴다.
 - PR을 병합하는 실수. 절대 `gh pr merge`를 실행하지 않는다.
 - 검사 단계를 생략하고 바로 병합하는 실수. 모든 단위가 검사 PASS가 되어야 다음 단계로 간다.
