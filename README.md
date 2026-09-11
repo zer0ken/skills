@@ -6,6 +6,7 @@ Personal skills organized by agent runtime.
 |---------|----------|----------------|
 | Claude Code | [claude/](claude/) | `~/.claude/skills/<skill>/` |
 | Codex | [codex/](codex/) | `~/.codex/skills/<skill>/` |
+| pi | [pi/](pi/) | `~/.agents/skills/<skill>/` |
 | Shared | [shared/](shared/) | Common references or assets for future platform-specific skills |
 
 ## Skills
@@ -24,6 +25,7 @@ Personal skills organized by agent runtime.
 | [handoff](claude/handoff/SKILL.md) | 대화를 핸드오프 문서로 압축해 다른 에이전트가 이어받게 한다. |
 | [grill-me](claude/grill-me/SKILL.md) | 계획/설계를 질문으로 끝까지 다지며 이해를 공유한다. |
 | [zoom-out](claude/zoom-out/SKILL.md) | 더 넓은 맥락이나 고수준 관점을 요구한다. |
+| [eli5](pi/eli5/SKILL.md) | 주제를 쉬운 말과 큰 그림으로 설명한다. |
 
 ## Install / Update
 
