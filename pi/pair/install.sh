@@ -4,7 +4,7 @@
 set -euo pipefail
 
 dest="$HOME/.agents/skills/pair"
-src="https://raw.githubusercontent.com/zer0ken/skills/main/pi/pair/SKILL.md"
+base="https://raw.githubusercontent.com/zer0ken/skills/main/pi/pair"
 
 # Protect a developer's symlinked working copy from being clobbered.
 if [ -L "$dest" ]; then
@@ -13,7 +13,9 @@ if [ -L "$dest" ]; then
 fi
 
 mkdir -p "$dest"
-curl -fsSL "$src" -o "$dest/SKILL.md"
+curl -fsSL "$base/SKILL.md" -o "$dest/SKILL.md"
+curl -fsSL "$base/pair-select-advisor.sh" -o "$dest/pair-select-advisor.sh"
+chmod +x "$dest/pair-select-advisor.sh"
 
 echo "pair skill installed/updated at $dest"
 echo "Restart the agent (or open a new session) to pick it up, then run /pair"

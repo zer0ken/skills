@@ -4,7 +4,7 @@
 $ErrorActionPreference = 'Stop'
 
 $dest = Join-Path $env:USERPROFILE '.agents\skills\pair'
-$src  = 'https://raw.githubusercontent.com/zer0ken/skills/main/pi/pair/SKILL.md'
+$base = 'https://raw.githubusercontent.com/zer0ken/skills/main/pi/pair'
 
 # Protect a developer's symlinked/junctioned working copy from being clobbered.
 if ((Test-Path $dest) -and ((Get-Item $dest -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
@@ -12,7 +12,8 @@ if ((Test-Path $dest) -and ((Get-Item $dest -Force).Attributes -band [IO.FileAtt
 }
 
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
-Invoke-WebRequest -Uri $src -OutFile (Join-Path $dest 'SKILL.md')
+Invoke-WebRequest -Uri "$base/SKILL.md" -OutFile (Join-Path $dest 'SKILL.md')
+Invoke-WebRequest -Uri "$base/pair-select-advisor.sh" -OutFile (Join-Path $dest 'pair-select-advisor.sh')
 
 Write-Host "pair skill installed/updated at $dest"
 Write-Host "Restart the agent (or open a new session) to pick it up, then run /pair"
