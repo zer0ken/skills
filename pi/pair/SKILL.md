@@ -3,7 +3,7 @@ name: pair
 description: "tmux 세션 안에서 드라이버 에이전트(pi/codex/claude 중 하나)와 어드바이저(선임급 모델)를 같은 윈도우에 수평 분할로 띄워 지속적 페어 하네스를 만든다. 어드바이저 모델은 GPT-6 Astra(low, codex)와 Claude Fable 5.1(low, claude) 중 주간 잔여 사용량이 더 많은 쪽을 선택한다. 계획·조언, 커밋 방향 검토, 완료 검토를 맡는다. tmux 밖에서는 동작하지 않는다. 사용자가 /pair 를 호출하거나, 페어, 클로드 페어, claude pair, 코드엑스 페어, codex pair, 검토 요청, 완료 검토, 커밋 리뷰, 어드바이저를 요청할 때 사용한다."
 metadata:
   author: hrlee
-  version: "1.5.0"
+  version: "1.6.0"
   domain: workflow
   triggers: pair, 페어, 클로드 페어, claude pair, 코드엑스 페어, codex pair, 검토 요청, 완료 검토, 커밋 리뷰, 어드바이저
   role: guardian
