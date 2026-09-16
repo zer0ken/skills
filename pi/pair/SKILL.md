@@ -125,6 +125,17 @@ PY
 { "driver": "pi", "driver_pane": "%25", "advisor": "fable", "advisor_pane": "%42", "repo": "/path/to/repo" }
 ```
 
+## 검토 메모
+
+조언자가 커밋을 검토한 결과를 쌓아두는 파일이다. 드라이버가 보고나 요청을 보낼 때까지 여기 머무른다.
+
+| 파일 | 내용 |
+| --- | --- |
+| `${TMPDIR:-/tmp}/pair-$(id -u)/notes-<WINDOW_ID>.md` | 아직 드라이버에게 전달하지 않은 검토 |
+| `${TMPDIR:-/tmp}/pair-$(id -u)/notes-<WINDOW_ID>.delivered.md` | 전달을 마친 검토 |
+
+조언자는 커밋 알림을 받을 때마다 앞 파일에 덧붙이고, 답변을 보낸 뒤 그 항목을 뒤 파일로 옮긴다. 두 파일 모두 이력이 목적이므로 계속 쌓인다.
+
 ## 최초 기동
 
 1. 작업 요약(TASK)을 정리한다. 사용자가 /pair 뒤에 준 말이 있으면 그것을 우선으로, 없으면 현재 대화에서 드라이버가 진행 중인 작업을 한두 문단으로 요약한다.
@@ -136,10 +147,12 @@ PY
 ```bash
 D="${TMPDIR:-/tmp}/pair-$(id -u)"
 mkdir -p "$D/state"
+NOTES_FILE="$D/notes-$WINDOW_ID.md"
+NOTES_DELIVERED="$D/notes-$WINDOW_ID.delivered.md"
 WATCHER_FILE="$D/watcher-$WINDOW_ID.sh"
 WATCHER_LOG="$D/watcher-$WINDOW_ID.log"
 INIT="$D/init-$(date +%s).md"
-# 감시기 절의 스크립트를 <REPO>, <ADVISOR_PANE>, <DRIVER_PANE>, <PAIR_SEND> 를 채워 WATCHER_FILE 로 쓴다.
+# 감시기 절의 스크립트를 <REPO>, <ADVISOR_PANE>, <DRIVER_PANE>, <PAIR_SEND>, <NOTES_FILE> 을 채워 WATCHER_FILE 로 쓴다.
 # 초기 메시지 절의 템플릿을 값으로 채워 INIT 로 쓴다. <PAIR_SEND> 는 메시지 전송 절에서 찾은 경로다.
 ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$REPO" "$ADVISOR_CMD \"\$(cat '$INIT')\"")
 ```
@@ -160,28 +173,40 @@ ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$RE
 
 역할
 - 드라이버 에이전트의 작업에 대해 계획과 조언을 준다.
-- 드라이버가 만든 커밋의 방향을 검토하고 의견을 준다.
+- 드라이버가 만든 커밋을 그때그때 검토해 메모로 쌓아둔다.
 - 드라이버가 완료를 알리면 아래 기준으로 완료 여부를 검토한다.
 
+말 거는 시점
+- 드라이버 pane 으로 메시지를 보내는 때는 드라이버가 보고하거나 조언을 구했을 때뿐이다. 그 외에는 먼저 말을 걸지 않는다.
+- 커밋 검토, 중간에 발견한 문제, 하고 싶은 지적은 전부 검토 메모에 쌓아두고 다음 답변에 실어 보낸다.
+- 예외는 정지 신호 하나다. 감시기가 드라이버 정지를 알리거나 네가 정지를 발견하면, 저장소와 드라이버 화면을 직접 점검한 뒤 먼저 말을 건다.
+- 그 밖에 드라이버가 묻지 않았는데 보내면 드라이버의 작업 흐름을 끊는다.
+
+검토 메모
+- 파일: <NOTES_FILE>. 미전달 검토만 담는다.
+- 전달한 검토는 <NOTES_DELIVERED> 로 옮기고 <NOTES_FILE> 은 비운다.
+- 항목마다 커밋 해시와 시각을 남긴다. 심각도(막아야 함 / 고치는 게 좋음 / 참고)를 붙인다.
+
 응답 프로토콜
-- 드라이버 세션에 답할 때는 답변을 /tmp/pair-reply.md 로 쓰고 아래 명령을 실행한다. 메시지는 명확하고 간결하게, 줄 첫머리에 슬래시(/)를 쓰지 않는다.
+- 드라이버가 보고나 요청을 보내면, 먼저 <NOTES_FILE> 을 읽어 미전달 검토를 모은다.
+- 답변은 요청에 대한 답을 앞에 두고, 쌓아둔 커밋 검토를 뒤에 정리해 붙인다. 같은 지적이 여러 커밋에 걸쳐 있으면 하나로 합친다. 쌓인 것이 없으면 요청에 대한 답만 보낸다.
+- 답변을 /tmp/pair-reply.md 로 쓰고 아래 명령을 실행한다. 메시지는 명확하고 간결하게, 줄 첫머리에 슬래시(/)를 쓰지 않는다.
   bash <PAIR_SEND> <DRIVER_PANE> /tmp/pair-reply.md
 - 이 명령이 0 이 아닌 코드로 끝나면 메시지가 도착하지 않은 것이다. 같은 파일로 한 번 더 실행하고, 그래도 실패하면 pane 상태를 확인한다.
-- 첫 응답(작업에 대한 계획과 조언)을 완성한 뒤에도 위 방식으로 드라이버 pane 에 보낸다.
+- 전송이 성공하면 보낸 검토 항목을 <NOTES_DELIVERED> 로 옮긴다.
+- 첫 응답(작업에 대한 계획과 조언)은 이 지시를 받은 직후 한 번 보낸다.
 
 커밋 감시 생성
 - 드라이버 세션의 새 커밋을 감지하는 감시기를 백그라운드로 만들어 실행한다.
   nohup bash <WATCHER_FILE> > <WATCHER_LOG> 2>&1 &
-- 감시기가 이 pane 으로 새 커밋을 알리면 git show, git diff 로 작업 방향과 맞는지 검토하고 의견을 드라이버 pane 으로 보낸다.
+- 감시기가 이 pane 으로 새 커밋을 알리면 git show, git diff 로 작업 방향과 맞는지 검토하고 결과를 <NOTES_FILE> 에 덧붙인다. 드라이버에게는 보내지 않는다.
 
 완료 검토
 - 드라이버가 작업 완료를 알리면 아래 기준으로 검토한다.
   - 사용자 전역 규칙(AGENTS.md 등 시스템 지시). 한국어 문체는 sucks 스킬 원칙, 주장·수치 검증은 osiri 원칙을 따른다. 가능하면 ~/.agents/skills/sucks/SKILL.md 와 ~/.agents/skills/osiri/SKILL.md 를 읽어 기준으로 삼는다.
   - 프로젝트 로컬 규칙 (저장소의 AGENTS.md, CLAUDE.md 등)
+  - 쌓아둔 커밋 검토 중 아직 반영되지 않은 지적
 - 기준에 어긋나거나 남은 작업이 있으면 구체적인 재작업을 지시하고, 충분하면 완료를 확인한다. 결과를 드라이버 pane 으로 보낸다.
-
-속도
-- 이 스킬의 "속도 방침" 절을 읽고 드라이버 규칙을 첫 응답에 넣어 보내며, 어드바이저 규칙대로 goal 갱신과 정지 감시를 한다.
 
 유지
 - 페어가 끝나도 이 세션과 감시기를 종료하지 않는다. 실행 상태로 유지한다.
@@ -237,11 +262,20 @@ bash "$PAIR_SEND" "$ADVISOR_PANE" "$MSG"
 
 ## 조언 요청
 
-사용자가 어드바이저에게 조언·계획·검토를 요청하면, 현재 작업 맥락을 요약해 어드바이저 pane 으로 보낸다. 재분할하지 않는다.
+사용자가 어드바이저에게 조언·계획·검토를 요청하면, 현재 작업 맥락을 요약해 어드바이저 pane 으로 보낸다. 재분할하지 않는다. 어드바이저는 요청에 대한 답과 함께 그동안 쌓아둔 커밋 검토를 정리해 돌려준다.
+
+## 보고 시점
+
+어드바이저는 드라이버가 말을 걸 때만 답한다. 커밋만 쌓이고 드라이버가 아무 말도 하지 않으면 검토는 메모에 머무른다. 따라서 드라이버는 다음 시점에 어드바이저에게 보고한다.
+
+- 한 덩어리의 작업을 끝냈을 때
+- 방향을 고르기 어려울 때
+- 커밋을 여러 개 쌓은 뒤, 쌓인 검토를 받아보고 싶을 때
+- 작업 완료를 선언할 때
 
 ## 완료 검토
 
-사용자가 작업 완료를 알리면 어드바이저에게 완료 검토를 요청한다. 완료 판단 근거와 작업 요약을 담고, 전역 규칙·프로젝트 규칙·sucks 문체·osiri 검증 기준으로 검토해 재작업 지시 또는 완료 확인을 요청한다. 어드바이저의 응답이 도착하면 사용자에게 전달하고, 재작업 지시가 있으면 그대로 이어서 작업한다.
+사용자가 작업 완료를 알리면 어드바이저에게 완료 검토를 요청한다. 완료 판단 근거와 작업 요약을 담고, 전역 규칙·프로젝트 규칙·sucks 문체·osiri 검증 기준으로 검토해 재작업 지시 또는 완료 확인을 요청한다. 어드바이저의 응답에는 아직 전달되지 않은 커밋 검토가 함께 담겨 온다. 응답이 도착하면 사용자에게 전달하고, 재작업 지시가 있으면 그대로 이어서 작업한다.
 
 ## 유지
 
@@ -249,38 +283,68 @@ bash "$PAIR_SEND" "$ADVISOR_PANE" "$MSG"
 
 ## 감시기
 
-아래 스크립트를 `<REPO>`, `<ADVISOR_PANE>`, `<DRIVER_PANE>`, `<PAIR_SEND>` 을 채워 임시 파일로 만들고 실행 가능하게 만든다. 어드바이저가 이 파일을 백그라운드로 실행해 모니터링을 생성한다. 감시기는 어드바이저가 종료되어도 돌아가므로, 어드바이저를 다시 띄울 때는 감시기를 내리고 새 어드바이저의 pane id 로 다시 올린다.
+아래 스크립트를 `<REPO>`, `<ADVISOR_PANE>`, `<DRIVER_PANE>`, `<PAIR_SEND>`, `<NOTES_FILE>` 을 채워 임시 파일로 만들고 실행 가능하게 만든다. 어드바이저가 이 파일을 백그라운드로 실행해 모니터링을 생성한다. 감시기는 어드바이저가 종료되어도 돌아가므로, 어드바이저를 다시 띄울 때는 감시기를 내리고 새 어드바이저의 pane id 로 다시 올린다.
+
+감시기가 보는 것은 둘이다. 새 커밋과 드라이버의 정지다. 커밋은 조용히 검토하게 하고, 정지는 즉시 개입하게 한다.
 
 ```bash
 #!/usr/bin/env bash
-# 드라이버 세션의 새 커밋을 감지해 어드바이저 pane 으로 알린다
+# 드라이버 세션의 새 커밋과 정지를 감지해 어드바이저 pane 으로 알린다
 set -u
 REPO="<REPO>"
 ADVISOR_PANE="<ADVISOR_PANE>"
 DRIVER_PANE="<DRIVER_PANE>"
 PAIR_SEND="<PAIR_SEND>"
+NOTES_FILE="<NOTES_FILE>"
 INTERVAL=10
+STALL_SECONDS=300
 norm() { case "$1" in %*) printf '%s' "$1" ;; *) printf '%%%s' "$1" ;; esac; }
 ADVISOR_PANE=$(norm "$ADVISOR_PANE")
 DRIVER_PANE=$(norm "$DRIVER_PANE")
 git -C "$REPO" rev-parse HEAD >/dev/null 2>&1 || { echo "not a git repo: $REPO"; exit 1; }
 last=$(git -C "$REPO" rev-parse HEAD)
+last_screen=""
+last_change=$SECONDS
+stall_reported=0
 while true; do
   sleep "$INTERVAL"
   # 감시 대상 pane 이 사라지면 종료한다. 남겨두면 없는 pane 으로 계속 전송을 시도한다.
   [ -z "$(tmux display-message -p -t "$ADVISOR_PANE" '#{pane_id}' 2>/dev/null)" ] && exit 0
+
+  # 정지 감지: 드라이버 화면이 STALL_SECONDS 동안 한 글자도 안 바뀌면 멈춘 것이다.
+  # 작업 중이면 스피너와 출력이 계속 바뀌므로 정지와 구분된다.
+  screen=$(tmux capture-pane -p -t "$DRIVER_PANE" 2>/dev/null | md5sum)
+  if [ "$screen" != "$last_screen" ]; then
+    last_screen="$screen"; last_change=$SECONDS; stall_reported=0
+  elif [ "$stall_reported" -eq 0 ] && [ $((SECONDS - last_change)) -ge "$STALL_SECONDS" ]; then
+    msg=$(mktemp)
+    {
+      printf '[pair] 드라이버 pane %s 화면이 %d분 넘게 그대로다. 정지 신호다.\n\n' "$DRIVER_PANE" $((STALL_SECONDS / 60))
+      printf -- '--- 드라이버 화면 끝부분\n'
+      tmux capture-pane -p -t "$DRIVER_PANE" 2>/dev/null | tail -20
+      printf -- '---\n\n'
+      printf '무엇이 막혀 있는지 네가 직접 점검해라. 저장소 상태(git status, git log, 최근 변경 파일), 열린 편집기 프로세스(ps -eo pid,etimes,args | grep -i editor), 드라이버 입력창에 제출되지 않고 남은 메시지를 본다.\n'
+      printf '점검 결과를 가지고 드라이버에게 말을 걸어라. 정지일 때는 드라이버가 묻지 않아도 먼저 보내는 것이 맞다.\n'
+    } > "$msg"
+    bash "$PAIR_SEND" "$ADVISOR_PANE" "$msg" || echo "watcher: stall notice failed"
+    rm -f "$msg"
+    stall_reported=1
+  fi
+
   head=$(git -C "$REPO" rev-parse HEAD 2>/dev/null) || continue
   [ "$head" = "$last" ] && continue
   log=$(git -C "$REPO" log --oneline --no-merges "$last..$head" 2>/dev/null) || log=""
   if [ -n "$log" ]; then
     msg=$(mktemp)
-    printf '[pair] 드라이버 세션의 새 커밋이 감지되었다.\n%s\n방향이 작업과 맞는지 검토하고 의견을 드라이버 pane %s 로 보내라.\n' "$log" "$DRIVER_PANE" > "$msg"
+    printf '[pair] 드라이버 세션의 새 커밋이 감지되었다.\n%s\n방향이 작업과 맞는지 지금 검토하고 결과를 %s 에 덧붙여라. 드라이버에게는 보내지 마라.\n' "$log" "$NOTES_FILE" > "$msg"
     bash "$PAIR_SEND" "$ADVISOR_PANE" "$msg" || echo "watcher: send failed for $head"
     rm -f "$msg"
   fi
   last="$head"
 done
 ```
+
+정지 알림은 한 번의 정지마다 한 번만 간다. 드라이버 화면이 다시 바뀌면 다음 정지를 위해 재무장한다.
 
 ## Install and Update
 
