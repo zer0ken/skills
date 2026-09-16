@@ -3,7 +3,7 @@ name: pair
 description: "tmux 세션 안에서 드라이버 에이전트(pi/codex/claude 중 하나)와 어드바이저(선임급 모델)를 같은 윈도우에 수평 분할로 띄워 지속적 페어 하네스를 만든다. 어드바이저 모델은 GPT-6 Astra(low, codex)와 Claude Fable 5.1(low, claude) 중 주간 잔여 사용량이 더 많은 쪽을 선택한다. 계획·조언, 커밋 방향 검토, 완료 검토를 맡는다. tmux 밖에서는 동작하지 않는다. 사용자가 /pair 를 호출하거나, 페어, 클로드 페어, claude pair, 코드엑스 페어, codex pair, 검토 요청, 완료 검토, 커밋 리뷰, 어드바이저를 요청할 때 사용한다."
 metadata:
   author: hrlee
-  version: "1.6.0"
+  version: "1.7.0"
   domain: workflow
   triggers: pair, 페어, 클로드 페어, claude pair, 코드엑스 페어, codex pair, 검토 요청, 완료 검토, 커밋 리뷰, 어드바이저
   role: guardian
@@ -119,10 +119,23 @@ PY
 
 ## 상태 파일
 
-페어 상태를 `${TMPDIR:-/tmp}/pair-$(id -u)/state/<SESSION_ID>_<WINDOW_ID>.json` 에 기록한다. 존재하면 재사용 판단에 쓴다. 이전 버전의 `pi_pane`/`claude_pane` 키가 있으면 각각 `driver_pane`/`advisor_pane` 으로 읽는다.
+페어 기록은 `pair-state.sh` 로만 읽고 쓴다. 키는 드라이버 pane id 다. pane id 는 재사용되지 않고 pane 을 다른 윈도우로 옮겨도 그대로라, (세션, 윈도우) 키와 달리 어긋나지 않는다.
+
+```bash
+PAIR_STATE=""
+for cand in ~/.agents/skills/pair/pair-state.sh ~/.pi/agent/skills/pair/pair-state.sh; do
+  [ -f "$cand" ] && PAIR_STATE="$cand" && break
+done
+
+bash "$PAIR_STATE" write "$DRIVER_PANE" "$ADVISOR_PANE" "$DRIVER" "$ADVISOR" "$REPO"
+bash "$PAIR_STATE" show "$DRIVER_PANE"          # 이 pane 이 속한 기록
+bash "$PAIR_STATE" counterpart "$DRIVER_PANE"   # 상대 pane id
+```
+
+기록에는 양쪽 pane id 와 그 시점의 pane pid 가 들어간다. pid 는 pane 이 그대로 있는데 그 안의 프로세스만 갈린 경우를 잡는 데 쓴다.
 
 ```json
-{ "driver": "pi", "driver_pane": "%25", "advisor": "fable", "advisor_pane": "%42", "repo": "/path/to/repo" }
+{ "driver": "pi", "driver_pane": "%25", "driver_pid": 12345, "advisor": "fable", "advisor_pane": "%42", "advisor_pid": 12346, "repo": "/path/to/repo", "updated": "2026-09-16T14:20:00" }
 ```
 
 ## 검토 메모
@@ -131,34 +144,37 @@ PY
 
 | 파일 | 내용 |
 | --- | --- |
-| `${TMPDIR:-/tmp}/pair-$(id -u)/notes-<WINDOW_ID>.md` | 아직 드라이버에게 전달하지 않은 검토 |
-| `${TMPDIR:-/tmp}/pair-$(id -u)/notes-<WINDOW_ID>.delivered.md` | 전달을 마친 검토 |
+| `${TMPDIR:-/tmp}/pair-$(id -u)/notes-<드라이버 pane 번호>.md` | 아직 드라이버에게 전달하지 않은 검토 |
+| `${TMPDIR:-/tmp}/pair-$(id -u)/notes-<드라이버 pane 번호>.delivered.md` | 전달을 마친 검토 |
 
 조언자는 커밋 알림을 받을 때마다 앞 파일에 덧붙이고, 답변을 보낸 뒤 그 항목을 뒤 파일로 옮긴다. 두 파일 모두 이력이 목적이므로 계속 쌓인다.
 
 ## 최초 기동
 
 1. 작업 요약(TASK)을 정리한다. 사용자가 /pair 뒤에 준 말이 있으면 그것을 우선으로, 없으면 현재 대화에서 드라이버가 진행 중인 작업을 한두 문단으로 요약한다.
-2. 상태 파일의 advisor_pane 이 살아 있으면 재사용한다. pane 존재 확인은 `tmux display-message -p -t <pane> '#{pane_id}'` 결과가 비어 있지 않은지로 판단한다. 살아 있으면 [메시지 전송]만 하고 끝낸다.
+2. `pair-state.sh show "$DRIVER_PANE"` 로 기존 기록을 찾는다. 기록의 advisor_pane 이 살아 있고 그 pane 의 pid 가 기록과 같으면 그 어드바이저를 재사용한다. 이때는 [메시지 전송]만 하고 끝낸다. pid 가 다르면 그 pane 의 세션은 이미 갈린 것이므로 재사용하지 않는다.
 3. 어드바이저 모델을 선택한다.
 4. REPO 를 두 CLI 의 신뢰 목록에 등록한다 (`trust_repo`).
-5. 없으면 감시기 스크립트를 먼저 만들고, 초기 메시지를 임시 파일로 쓴 뒤, 어드바이저를 수평 분할로 띄운다. 초기 메시지를 어드바이저의 첫 프롬프트로 넘긴다.
+5. 감시기 스크립트를 먼저 만들고, 초기 메시지를 임시 파일로 쓴 뒤, 어드바이저를 수평 분할로 띄운다. 초기 메시지를 어드바이저의 첫 프롬프트로 넘긴다.
+6. `pair-state.sh write` 로 상태를 기록한다. 이 기록이 이후 모든 전송의 대상 검사 기준이 된다.
+7. 초기 메시지에는 어드바이저가 `WATCHER_FILE` 을 백그라운드로 실행해 모니터링을 만들도록 지시한다.
 
 ```bash
 D="${TMPDIR:-/tmp}/pair-$(id -u)"
 mkdir -p "$D/state"
-NOTES_FILE="$D/notes-$WINDOW_ID.md"
-NOTES_DELIVERED="$D/notes-$WINDOW_ID.delivered.md"
-WATCHER_FILE="$D/watcher-$WINDOW_ID.sh"
-WATCHER_LOG="$D/watcher-$WINDOW_ID.log"
+KEY="${DRIVER_PANE#%}"
+NOTES_FILE="$D/notes-$KEY.md"
+NOTES_DELIVERED="$D/notes-$KEY.delivered.md"
+WATCHER_FILE="$D/watcher-$KEY.sh"
+WATCHER_LOG="$D/watcher-$KEY.log"
 INIT="$D/init-$(date +%s).md"
 # 감시기 절의 스크립트를 <REPO>, <ADVISOR_PANE>, <DRIVER_PANE>, <PAIR_SEND>, <NOTES_FILE> 을 채워 WATCHER_FILE 로 쓴다.
-# 초기 메시지 절의 템플릿을 값으로 채워 INIT 로 쓴다. <PAIR_SEND> 는 메시지 전송 절에서 찾은 경로다.
+# 초기 메시지 절의 템플릿을 값으로 채워 INIT 로 쓴다. <PAIR_SEND>, <PAIR_STATE> 는 앞 절에서 찾은 경로다.
 ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$REPO" "$ADVISOR_CMD \"\$(cat '$INIT')\"")
+bash "$PAIR_STATE" write "$DRIVER_PANE" "$ADVISOR_PANE" "$DRIVER" "$ADVISOR" "$REPO"
 ```
 
-5. 상태 파일을 쓴다.
-6. 초기 메시지에는 어드바이저가 `WATCHER_FILE` 을 백그라운드로 실행해 모니터링을 만들도록 지시한다.
+파일 이름의 키도 드라이버 pane id 다. 윈도우 번호로 이름을 지으면 pane 이 다른 윈도우로 옮겨갔을 때 남의 페어 파일을 집는다.
 
 ## 초기 메시지
 
@@ -192,7 +208,8 @@ ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$RE
 - 답변은 요청에 대한 답을 앞에 두고, 쌓아둔 커밋 검토를 뒤에 정리해 붙인다. 같은 지적이 여러 커밋에 걸쳐 있으면 하나로 합친다. 쌓인 것이 없으면 요청에 대한 답만 보낸다.
 - 답변을 /tmp/pair-reply.md 로 쓰고 아래 명령을 실행한다. 메시지는 명확하고 간결하게, 줄 첫머리에 슬래시(/)를 쓰지 않는다.
   bash <PAIR_SEND> <DRIVER_PANE> /tmp/pair-reply.md
-- 이 명령이 0 이 아닌 코드로 끝나면 메시지가 도착하지 않은 것이다. 같은 파일로 한 번 더 실행하고, 그래도 실패하면 pane 상태를 확인한다.
+- 이 명령이 0 이 아닌 코드로 끝나면 메시지가 도착하지 않은 것이다. 같은 파일로 한 번 더 실행한다.
+- 코드 6 은 대상 pane 확인에 걸린 것이다. 대상을 바꿔가며 다시 쏘지 마라. <PAIR_STATE> show 로 기록을 확인하고, 드라이버 pane 이 맞는지 tmux list-panes 로 확인한 뒤 <PAIR_STATE> write 로 다시 등록하고 보낸다.
 - 전송이 성공하면 보낸 검토 항목을 <NOTES_DELIVERED> 로 옮긴다.
 - 첫 응답(작업에 대한 계획과 조언)은 이 지시를 받은 직후 한 번 보낸다.
 
@@ -214,7 +231,7 @@ ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$RE
 
 ## 메시지 전송
 
-어드바이저에게 메시지를 보낼 때. 이 스킬 디렉토리의 `pair-send.sh` 를 쓴다. 붙여넣기와 Enter 를 각각 확인하고, 제출이 안 되면 Enter 를 다른 인코딩으로 다시 눌러 본다.
+메시지는 `pair-send.sh` 로만 보낸다. 직접 `tmux paste-buffer` 와 `send-keys` 를 부르지 않는다. 이 스크립트가 보내기 전에 대상 pane 이 맞는지 확인하고, 보낸 뒤 제출됐는지 확인한다.
 
 ```bash
 PAIR_SEND=""
@@ -229,7 +246,16 @@ EOF
 bash "$PAIR_SEND" "$ADVISOR_PANE" "$MSG"
 ```
 
-종료 코드는 3이면 pane 이 없는 것이고, 4면 붙여넣기가 입력창에 도달하지 못한 것이고, 5면 메시지가 입력창에 남아 제출되지 않은 것이다. 0이 아니면 전송된 것으로 간주하지 말고 사용자에게 알린다.
+보내기 전 확인 네 가지다. 사람이 기억할 필요가 없도록 스크립트가 막는다.
+
+| 확인 | 막는 사고 |
+| --- | --- |
+| 대상이 내 pane 이 아닐 것 | 자기 자신에게 보내기 |
+| 대상이 pi, claude, codex 중 하나를 돌리고 있을 것 | 셸이나 로그 pane 에 붙여넣기 |
+| 기록상 내 상대와 대상이 같을 것 | 남의 페어 pane 으로 보내기 |
+| 기록된 pane pid 와 지금 pid 가 같을 것 | pane 은 그대로인데 안의 세션이 갈린 뒤 옛 상대로 보내기 |
+
+종료 코드는 3이면 pane 이 없는 것, 4면 붙여넣기가 입력창에 닿지 못한 것, 5면 메시지가 입력창에 남아 제출되지 않은 것, 6이면 대상 pane 확인에 걸린 것이다. 0이 아니면 전송된 것으로 간주하지 않는다. 특히 6은 대상을 바꿔 다시 쏘지 말고, `pair-state.sh show` 로 지금 기록을 확인한 뒤 `pair-state.sh write` 로 다시 등록하고 보낸다.
 
 붙여넣기와 Enter 는 별개의 tmux 명령이라, 붙여넣기가 상대 TUI 의 편집기에 반영되기 전에 Enter 가 도착하면 그 Enter 가 붙여넣은 덩어리 안쪽으로 들어가 개행이 되고 메시지는 프롬프트에 그대로 남는다. `pair-send.sh` 는 입력창 상태를 직접 확인해 이 경합을 닫는다. 상대 TUI 가 bracketed paste 를 지원하지 않아 `200~` 마커가 그대로 보이면 `tmux send-keys -t <pane> -l "<내용>"` 으로 대체한다.
 
@@ -362,4 +388,4 @@ curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/pi/pair/install
 
 Re-running the command fetches the latest version; install and update are the same command.
 
-`pair-select-advisor.sh` 와 `pair-send.sh` 는 이 스킬 디렉토리에 함께 배치된다. 원격 저장소로 배포할 때는 SKILL.md 와 함께 세 파일을 올려야 한다.
+`pair-select-advisor.sh`, `pair-send.sh`, `pair-state.sh` 는 이 스킬 디렉토리에 함께 배치된다. 원격 저장소로 배포할 때는 SKILL.md 와 함께 네 파일을 올려야 한다.

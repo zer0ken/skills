@@ -53,6 +53,41 @@ wait_for() { # $1 = "filled" | "empty", $2 = deadline in seconds
   return 1
 }
 
+# Identity gate. The message must not go to a pane that is not this pair's
+# counterpart: a stale record, a moved pane, or a respawned pane all point at
+# someone else's session, and a message delivered there is gone.
+STATE="$(dirname "$0")/pair-state.sh"
+PANE=$(case "$PANE" in %*) printf '%s' "$PANE" ;; *) printf '%%%s' "$PANE" ;; esac)
+
+if [ -n "${TMUX_PANE:-}" ] && [ "$PANE" = "$TMUX_PANE" ]; then
+  echo "pair-send: refusing to send to my own pane $PANE" >&2
+  exit 6
+fi
+
+target_cmd=$(tmux display-message -p -t "$PANE" '#{pane_current_command}' 2>/dev/null)
+case "$target_cmd" in
+  pi|claude|codex) ;;
+  *)
+    echo "pair-send: $PANE runs '$target_cmd', not an agent TUI" >&2
+    exit 6
+    ;;
+esac
+
+if [ -n "${TMUX_PANE:-}" ]; then
+  counterpart=$(bash "$STATE" counterpart "$TMUX_PANE" 2>/dev/null)
+  if [ -n "$counterpart" ] && [ "$counterpart" != "$PANE" ]; then
+    echo "pair-send: my counterpart is $counterpart, not $PANE. 상태를 다시 등록하고 보내라" >&2
+    exit 6
+  fi
+fi
+
+recorded_pid=$(bash "$STATE" pid "$PANE" 2>/dev/null)
+current_pid=$(tmux display-message -p -t "$PANE" '#{pane_pid}' 2>/dev/null)
+if [ -n "$recorded_pid" ] && [ "$recorded_pid" != "$current_pid" ]; then
+  echo "pair-send: $PANE was respawned (recorded pid $recorded_pid, now $current_pid). 상태를 다시 등록하고 보내라" >&2
+  exit 6
+fi
+
 # A pane in copy mode swallows every key, so leave it first.
 [ "$(tmux display-message -p -t "$PANE" '#{pane_in_mode}')" = "1" ] && tmux send-keys -t "$PANE" -X cancel
 

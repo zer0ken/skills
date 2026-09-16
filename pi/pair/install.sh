@@ -18,6 +18,8 @@ curl -fsSL "$base/pair-select-advisor.sh" -o "$dest/pair-select-advisor.sh"
 chmod +x "$dest/pair-select-advisor.sh"
 curl -fsSL "$base/pair-send.sh" -o "$dest/pair-send.sh"
 chmod +x "$dest/pair-send.sh"
+curl -fsSL "$base/pair-state.sh" -o "$dest/pair-state.sh"
+chmod +x "$dest/pair-state.sh"
 
 echo "pair skill installed/updated at $dest"
 echo "Restart the agent (or open a new session) to pick it up, then run /pair"

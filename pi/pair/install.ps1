@@ -15,6 +15,7 @@ New-Item -ItemType Directory -Force -Path $dest | Out-Null
 Invoke-WebRequest -Uri "$base/SKILL.md" -OutFile (Join-Path $dest 'SKILL.md')
 Invoke-WebRequest -Uri "$base/pair-select-advisor.sh" -OutFile (Join-Path $dest 'pair-select-advisor.sh')
 Invoke-WebRequest -Uri "$base/pair-send.sh" -OutFile (Join-Path $dest 'pair-send.sh')
+Invoke-WebRequest -Uri "$base/pair-state.sh" -OutFile (Join-Path $dest 'pair-state.sh')
 
 Write-Host "pair skill installed/updated at $dest"
 Write-Host "Restart the agent (or open a new session) to pick it up, then run /pair"
