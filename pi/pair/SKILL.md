@@ -3,7 +3,7 @@ name: pair
 description: "tmux 세션 안에서 드라이버 에이전트(pi/codex/claude 중 하나)와 어드바이저(선임급 모델)를 같은 윈도우에 수평 분할로 띄워 지속적 페어 하네스를 만든다. 어드바이저 모델은 GPT-6 Astra(low, codex)와 Claude Fable 5.1(low, claude) 중 주간 잔여 사용량이 더 많은 쪽을 선택한다. 계획·조언, 커밋 방향 검토, 완료 검토를 맡는다. tmux 밖에서는 동작하지 않는다. 사용자가 /pair 를 호출하거나, 페어, 클로드 페어, claude pair, 코드엑스 페어, codex pair, 검토 요청, 완료 검토, 커밋 리뷰, 어드바이저를 요청할 때 사용한다."
 metadata:
   author: hrlee
-  version: "1.3.0"
+  version: "1.5.0"
   domain: workflow
   triggers: pair, 페어, 클로드 페어, claude pair, 코드엑스 페어, codex pair, 검토 요청, 완료 검토, 커밋 리뷰, 어드바이저
   role: guardian
@@ -139,8 +139,8 @@ mkdir -p "$D/state"
 WATCHER_FILE="$D/watcher-$WINDOW_ID.sh"
 WATCHER_LOG="$D/watcher-$WINDOW_ID.log"
 INIT="$D/init-$(date +%s).md"
-# 감시기 절의 스크립트를 <REPO>, <ADVISOR_PANE>, <DRIVER_PANE> 을 채워 WATCHER_FILE 로 쓴다.
-# 초기 메시지 절의 템플릿을 값으로 채워 INIT 로 쓴다.
+# 감시기 절의 스크립트를 <REPO>, <ADVISOR_PANE>, <DRIVER_PANE>, <PAIR_SEND> 를 채워 WATCHER_FILE 로 쓴다.
+# 초기 메시지 절의 템플릿을 값으로 채워 INIT 로 쓴다. <PAIR_SEND> 는 메시지 전송 절에서 찾은 경로다.
 ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$REPO" "$ADVISOR_CMD \"\$(cat '$INIT')\"")
 ```
 
@@ -165,9 +165,8 @@ ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$RE
 
 응답 프로토콜
 - 드라이버 세션에 답할 때는 답변을 /tmp/pair-reply.md 로 쓰고 아래 명령을 실행한다. 메시지는 명확하고 간결하게, 줄 첫머리에 슬래시(/)를 쓰지 않는다.
-  tmux load-buffer -b pairreply - < /tmp/pair-reply.md
-  tmux paste-buffer -b pairreply -t <DRIVER_PANE> -p
-  tmux send-keys -t <DRIVER_PANE> Enter
+  bash <PAIR_SEND> <DRIVER_PANE> /tmp/pair-reply.md
+- 이 명령이 0 이 아닌 코드로 끝나면 메시지가 도착하지 않은 것이다. 같은 파일로 한 번 더 실행하고, 그래도 실패하면 pane 상태를 확인한다.
 - 첫 응답(작업에 대한 계획과 조언)을 완성한 뒤에도 위 방식으로 드라이버 pane 에 보낸다.
 
 커밋 감시 생성
@@ -181,23 +180,60 @@ ADVISOR_PANE=$(tmux split-window -t "$DRIVER_PANE" -h -P -F '#{pane_id}' -c "$RE
   - 프로젝트 로컬 규칙 (저장소의 AGENTS.md, CLAUDE.md 등)
 - 기준에 어긋나거나 남은 작업이 있으면 구체적인 재작업을 지시하고, 충분하면 완료를 확인한다. 결과를 드라이버 pane 으로 보낸다.
 
+속도
+- 이 스킬의 "속도 방침" 절을 읽고 드라이버 규칙을 첫 응답에 넣어 보내며, 어드바이저 규칙대로 goal 갱신과 정지 감시를 한다.
+
 유지
 - 페어가 끝나도 이 세션과 감시기를 종료하지 않는다. 실행 상태로 유지한다.
 ```
 
 ## 메시지 전송
 
-어드바이저에게 메시지를 보낼 때. 대상 pane 에 bracketed paste 로 넣고 Enter 로 제출한다. 어드바이저의 답변도 같은 방식으로 드라이버 pane 에 도착한다. 상대 TUI 가 bracketed paste 를 지원하지 않아 `200~` 마커가 그대로 보이면 `tmux send-keys -t <pane> -l "<내용>"` 으로 대체한다.
+어드바이저에게 메시지를 보낼 때. 이 스킬 디렉토리의 `pair-send.sh` 를 쓴다. 붙여넣기와 Enter 를 각각 확인하고, 제출이 안 되면 Enter 를 다른 인코딩으로 다시 눌러 본다.
 
 ```bash
+PAIR_SEND=""
+for cand in ~/.agents/skills/pair/pair-send.sh ~/.pi/agent/skills/pair/pair-send.sh; do
+  [ -f "$cand" ] && PAIR_SEND="$cand" && break
+done
+
 MSG="${TMPDIR:-/tmp}/pair-$(id -u)/msg-$(date +%s).md"
 cat > "$MSG" <<'EOF'
 <보낼 메시지>
 EOF
-tmux load-buffer -b pairmsg - < "$MSG"
-tmux paste-buffer -b pairmsg -t "$ADVISOR_PANE" -p
-tmux send-keys -t "$ADVISOR_PANE" Enter
+bash "$PAIR_SEND" "$ADVISOR_PANE" "$MSG"
 ```
+
+종료 코드는 3이면 pane 이 없는 것이고, 4면 붙여넣기가 입력창에 도달하지 못한 것이고, 5면 메시지가 입력창에 남아 제출되지 않은 것이다. 0이 아니면 전송된 것으로 간주하지 말고 사용자에게 알린다.
+
+붙여넣기와 Enter 는 별개의 tmux 명령이라, 붙여넣기가 상대 TUI 의 편집기에 반영되기 전에 Enter 가 도착하면 그 Enter 가 붙여넣은 덩어리 안쪽으로 들어가 개행이 되고 메시지는 프롬프트에 그대로 남는다. `pair-send.sh` 는 입력창 상태를 직접 확인해 이 경합을 닫는다. 상대 TUI 가 bracketed paste 를 지원하지 않아 `200~` 마커가 그대로 보이면 `tmux send-keys -t <pane> -l "<내용>"` 으로 대체한다.
+
+## 속도 방침
+
+페어의 목적은 검토만이 아니라 드라이버가 빠르게 끝내게 하는 것이다. 어드바이저는 아래 방침을 초기 메시지와 goal 에 넣고, 어긋나면 바로 개입한다.
+
+### 드라이버 규칙
+
+| 규칙 | 이유 |
+| --- | --- |
+| import 가 되는 지점마다 20분 안에 커밋하고 바로 push 한다. 완벽한 마감을 기다리지 않는다 | 압축이나 중단으로 미커밋 변경이 사라지는 것을 막고, 어드바이저가 검토를 시작할 수 있다 |
+| 중간 검증은 import 스모크, lint-imports, `-k` 로 좁힌 시험만 한다. 단위 전체와 통합 전체는 어드바이저가 돌린다 | 10분짜리 전체 시험을 작업 중간에 돌리면 그 시간 동안 드라이버가 멈춘다 |
+| 하위 에이전트는 목표 상태(파일, 줄, 해야 할 동작)가 전부 적힌 일에만, 별도 워크트리 하나에 하나만 쓴다. 하위 에이전트는 git 명령을 하지 않는다 | 위임 지시 작성과 결과 재확인이 직접 편집보다 오래 걸리고, 같은 워크트리의 하위 에이전트 둘은 서로 파일을 덮어쓴다 |
+| 커밋 메시지를 열 수 있는 git 명령(rebase --continue, merge, cherry-pick, commit --amend)에는 `-c core.editor=true` 를 붙인다 | 편집기가 tty 없이 열려 도구 호출이 수 분 동안 멈춘다 |
+| 시험이 setup 에서 실패하면 같은 명령을 다시 치지 않고 setup 로그를 먼저 읽는다 | 같은 명령의 세 번 반복은 원인을 읽지 않았다는 뜻이다 |
+| 탐색용 cat, grep, sed 는 한 호출에 묶는다 | 호출 하나가 한 턴이라 열 번 나눠 치면 열 턴이 든다 |
+| 보고는 커밋마다 한 줄이다. 어드바이저의 검토는 반영하되 기다리지 않는다 | 검토 대기가 작업 사이의 빈 시간을 만든다 |
+
+### 어드바이저 규칙
+
+| 규칙 | 이유 |
+| --- | --- |
+| 검토는 "조건부 통과" 로 낸다. 고칠 항목을 번호로 적고 다음 커밋에 넣게 하며, 드라이버를 세우지 않는다 | 막는 검토는 드라이버를 기다리게 하고, 항목 목록은 다음 커밋으로 흡수된다 |
+| 드라이버가 탐색할 것을 어드바이저가 먼저 찾아 파일과 줄 번호로 넘긴다. 이미 있는 구현이 있으면 그 위치를 알린다 | 어드바이저가 한 번 읽는 것이 드라이버가 열 턴 탐색하는 것보다 빠르다 |
+| 단계가 끝날 때마다 드라이버의 goal 을 갱신한다(pi 는 `/goal <새 목표>` 를 pane 에 입력하고 바꾸기 확인). 끝난 것, 남은 순서, 완료 기준, 작업 규칙을 담는다 | 낡은 goal 은 드라이버를 지난 단계의 기준으로 되돌린다 |
+| 정지 신호를 감시하고 바로 개입한다. 같은 화면이 5분 넘게 그대로인 것, 편집기 프로세스(`ps -eo pid,etimes,args \| grep editor`), 상태줄의 `Goal paused`, 같은 명령의 세 번 반복이 신호다 | 드라이버는 스스로 멈춘 것을 알리지 않는다 |
+| 독립된 이슈는 각각 워크트리와 브랜치를 따서 병렬로 진행시킨다. 커밋과 push 는 드라이버가 한다 | 파일이 겹치지 않는 일은 동시에 끝난다 |
+| 커밋마다 어드바이저가 직접 확인하는 것: push 여부, 커밋 메시지의 금지 문자와 AI 흔적, import, lint, 옛 이름 잔존. 전체 시험은 어드바이저가 분리 프로세스(`setsid nohup`)로 돌리고 결과를 한 줄로 알린다 | 드라이버의 "통과" 보고와 실제 결과가 다른 일이 잦다 |
 
 ## 조언 요청
 
@@ -213,7 +249,7 @@ tmux send-keys -t "$ADVISOR_PANE" Enter
 
 ## 감시기
 
-아래 스크립트를 `<REPO>`, `<ADVISOR_PANE>`, `<DRIVER_PANE>` 을 채워 임시 파일로 만들고 실행 가능하게 만든다. 어드바이저가 이 파일을 백그라운드로 실행해 모니터링을 생성한다. 감시기는 어드바이저가 종료되어도 돌아가므로, 어드바이저를 다시 띄울 때는 감시기를 내리고 새 어드바이저의 pane id 로 다시 올린다.
+아래 스크립트를 `<REPO>`, `<ADVISOR_PANE>`, `<DRIVER_PANE>`, `<PAIR_SEND>` 을 채워 임시 파일로 만들고 실행 가능하게 만든다. 어드바이저가 이 파일을 백그라운드로 실행해 모니터링을 생성한다. 감시기는 어드바이저가 종료되어도 돌아가므로, 어드바이저를 다시 띄울 때는 감시기를 내리고 새 어드바이저의 pane id 로 다시 올린다.
 
 ```bash
 #!/usr/bin/env bash
@@ -222,6 +258,7 @@ set -u
 REPO="<REPO>"
 ADVISOR_PANE="<ADVISOR_PANE>"
 DRIVER_PANE="<DRIVER_PANE>"
+PAIR_SEND="<PAIR_SEND>"
 INTERVAL=10
 norm() { case "$1" in %*) printf '%s' "$1" ;; *) printf '%%%s' "$1" ;; esac; }
 ADVISOR_PANE=$(norm "$ADVISOR_PANE")
@@ -230,14 +267,16 @@ git -C "$REPO" rev-parse HEAD >/dev/null 2>&1 || { echo "not a git repo: $REPO";
 last=$(git -C "$REPO" rev-parse HEAD)
 while true; do
   sleep "$INTERVAL"
+  # 감시 대상 pane 이 사라지면 종료한다. 남겨두면 없는 pane 으로 계속 전송을 시도한다.
+  [ -z "$(tmux display-message -p -t "$ADVISOR_PANE" '#{pane_id}' 2>/dev/null)" ] && exit 0
   head=$(git -C "$REPO" rev-parse HEAD 2>/dev/null) || continue
   [ "$head" = "$last" ] && continue
   log=$(git -C "$REPO" log --oneline --no-merges "$last..$head" 2>/dev/null) || log=""
   if [ -n "$log" ]; then
-    msg=$(printf '[pair] 드라이버 세션의 새 커밋이 감지되었다.\n%s\n방향이 작업과 맞는지 검토하고 의견을 드라이버 pane %s 로 보내라.\n' "$log" "$DRIVER_PANE")
-    printf '%s' "$msg" | tmux load-buffer -b pairwatch -
-    tmux paste-buffer -b pairwatch -t "$ADVISOR_PANE" -p
-    tmux send-keys -t "$ADVISOR_PANE" Enter
+    msg=$(mktemp)
+    printf '[pair] 드라이버 세션의 새 커밋이 감지되었다.\n%s\n방향이 작업과 맞는지 검토하고 의견을 드라이버 pane %s 로 보내라.\n' "$log" "$DRIVER_PANE" > "$msg"
+    bash "$PAIR_SEND" "$ADVISOR_PANE" "$msg" || echo "watcher: send failed for $head"
+    rm -f "$msg"
   fi
   last="$head"
 done
@@ -259,4 +298,4 @@ curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/pi/pair/install
 
 Re-running the command fetches the latest version; install and update are the same command.
 
-`pair-select-advisor.sh` 는 이 스킬 디렉토리에 함께 배치된다. 원격 저장소로 배포할 때는 SKILL.md 와 함께 두 파일을 함께 올려야 한다.
+`pair-select-advisor.sh` 와 `pair-send.sh` 는 이 스킬 디렉토리에 함께 배치된다. 원격 저장소로 배포할 때는 SKILL.md 와 함께 세 파일을 올려야 한다.
