@@ -345,3 +345,19 @@ docstring은 예외다. 주어가 그 docstring이 붙은 모듈, 클래스, 함
 ### 머리 문장
 
 28. 머리 문장이 구성 요소 목록이나 호출자 목록인가.
+
+## 설치와 업데이트
+
+PowerShell (Windows):
+
+```powershell
+irm https://raw.githubusercontent.com/zer0ken/skills/main/pi/sucks/install.ps1 | iex
+```
+
+Bash (macOS/Linux/WSL):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zer0ken/skills/main/pi/sucks/install.sh | bash
+```
+
+같은 명령이 설치와 업데이트를 모두 한다. 다시 실행하면 최신 판을 받는다.
