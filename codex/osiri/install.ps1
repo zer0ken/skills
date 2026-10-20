@@ -12,6 +12,7 @@ if ((Test-Path $dest) -and ((Get-Item $dest -Force).Attributes -band [IO.FileAtt
 }
 
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
+Invoke-WebRequest -Uri ($src -replace '/SKILL.md$', '/TECHNICAL_REVIEW_GUIDE.md') -OutFile (Join-Path $dest 'TECHNICAL_REVIEW_GUIDE.md')
 Invoke-WebRequest -Uri $src -OutFile (Join-Path $dest 'SKILL.md')
 
 Write-Host "osiri skill installed/updated at $dest"

@@ -13,6 +13,7 @@ if [ -L "$dest" ]; then
 fi
 
 mkdir -p "$dest"
+curl -fsSL "${src%/SKILL.md}/TECHNICAL_REVIEW_GUIDE.md" -o "$dest/TECHNICAL_REVIEW_GUIDE.md"
 curl -fsSL "$src" -o "$dest/SKILL.md"
 
 echo "osiri skill installed/updated at $dest"

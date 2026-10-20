@@ -1,19 +1,29 @@
 ---
 name: osiri
-description: Peer review protocol for auditing another agent's document, report, or claims. Use when the user invokes /osiri, asks for a peer review, a claim audit, an evidence check, or a reviewer-author round trip over a report carrying benchmark numbers, derived values, figures, or provenance.
+description: Review code, designs, pull requests, and engineering reports. Use when the user invokes /osiri, requests a technical or peer review, audits claims and evidence, or needs a reviewer-author round trip over implementation or report findings.
 metadata:
   author: 오세연
-  version: "1.0.0"
+  version: "1.1.0"
   domain: review
-  triggers: peer review, osiri, claim audit, evidence class, finding, reviewer, author response, benchmark report, figure consistency, provenance, recheck
+  triggers: technical review, code review, design review, pull request review, peer review, osiri, claim audit, evidence check, reviewer, author response, benchmark report, provenance, recheck
   role: guardian
   scope: output
   output-format: guidance
 ---
 
-# osiri - agent peer review
+# osiri - technical and peer review
 
-Peer review protocol shared by 오세연 for review between agents. One agent reviews as the reviewer, another answers as the author, and the file holding the findings is the only shared state.
+Review guidance shared by 오세연 for code, design, pull requests, and evidence-bearing reports.
+
+## Choose the Review Workflow
+
+- For code, design, pull request reviews, GitHub discussion drafts, and long-running implementation reviews, read [Technical Review Guide](TECHNICAL_REVIEW_GUIDE.md). It defines the review surface, explanation density, finding format, follow-up IDs, and decision records for those tasks.
+- For document, report, claim, benchmark, figure, or provenance audits between agents, use the report peer-review protocol below. One agent reviews, another answers as the author, and the findings file holds their shared review state.
+- For mixed reviews, apply each workflow to its own review surface. Do not impose report-specific templates on a code review or discussion draft. Keep one finding-ID scheme within each review record; continue existing IDs in follow-ups.
+
+The technical guide names additional workspace guides, including `TECHNICAL_REPORT_GUIDE.md`, `PERFORMANCE_MEASUREMENT_GUIDE.md`, `SYSTEM_ANALYSIS_REPORT_GUIDE.md`, `PEER_REVIEW_GUIDE.md`, `DOCUMENT_REORGANIZATION_GUIDE.md`, and `STORAGE_GUIDE.md`. These are external workspace documents, not bundled skill files. Locate applicable guides in the review workspace when needed. If unavailable, state the limitation when it affects the decision and use the bundled report protocol for evidence audits. Do not invent their contents.
+
+## Report Peer-Review Protocol
 
 ## Roles and Boundaries
 
