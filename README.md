@@ -24,6 +24,7 @@ Personal skills organized by agent runtime.
 | [issue](claude/issue/SKILL.md) | 이슈를 올린다. 본문은 항목 이름을 붙인 불릿 한 줄씩, 상세는 코멘트로. |
 | [pr](claude/pr/SKILL.md) | PR 을 올린다. 불릿 3줄 요약과 이슈 참조, 상세는 코멘트로. |
 | [handoff](claude/handoff/SKILL.md) | 대화를 핸드오프 문서로 압축해 다른 에이전트가 이어받게 한다. |
+| [tdd-is-dead](claude/tdd-is-dead/SKILL.md) | 범위와 의도를 먼저 파악하고 최소 테스트로 검증하는 코드 작업 순서. TDD식 작성-실행-수정 반복을 금지한다. |
 | [eli5](pi/eli5/SKILL.md) | 주제를 쉬운 말과 큰 그림으로 설명한다. |
 | [sucks](pi/sucks/SKILL.md) | pi 용 한국어 기술 문서 문체 규칙. Claude 판과 같은 내용이다. |
 | [pair](pi/pair/SKILL.md) | tmux 안에서 드라이버(pi/codex/claude)와 어드바이저(astra/fable 중 잔여 사용량이 많은 쪽)를 붙여 커밋 감시·완료 검토를 받는다. |
