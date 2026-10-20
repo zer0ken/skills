@@ -16,6 +16,7 @@ Personal skills organized by agent runtime.
 | [claude-cookbook](claude/claude-cookbook/SKILL.md) | Find Anthropic Claude Cookbook recipes for a topic. |
 | [openai-cookbook](claude/openai-cookbook/SKILL.md) | Find OpenAI Cookbook examples for a topic. |
 | [osiri](claude/osiri/SKILL.md) | Technical reviews of code, designs, and PRs, plus peer audits of reports, claims, evidence, and figures. |
+| [teqr](claude/teqr/SKILL.md) ([Codex](codex/teqr/SKILL.md)) | Write and revise technical reports, runbooks, experiment notes, and test or benchmark plans. |
 | [refactor](claude/refactor/SKILL.md) ([Codex](codex/refactor/SKILL.md)) | 기능과 성능을 보존하는 리팩토링 계획·실행과 저장소 예방책 감사. |
 | [render-formulas](claude/render-formulas/SKILL.md) | Render a LaTeX formula to a PNG and open it in the image viewer. |
 | [sucks](claude/sucks/SKILL.md) | Korean technical prose style rules for docs, issues, PR bodies, and comments. |
