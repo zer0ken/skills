@@ -1,0 +1,4 @@
+interface:
+  display_name: "POV"
+  short_description: "제품 맥락 조사와 일곱 전문가 관점의 의견 수집 및 종합"
+  default_prompt: "$pov로 현재 제품을 조사하고 일곱 전문가 관점의 의견과 근거, 이견, 우선순위를 정리해줘."
