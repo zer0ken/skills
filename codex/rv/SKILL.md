@@ -1,6 +1,10 @@
 ---
 name: rv
 description: Adversarial code, design, and PR review. Use when the user requests a review or invokes /rv or $rv.
+metadata:
+  author: hrlee
+  version: "1.0.0"
+  domain: review
 ---
 # rv
 
