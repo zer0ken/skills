@@ -11,6 +11,8 @@ Do not read any other path under ~/.agents, other worktrees, PR pages, or sessio
 
 Rules:
 - Report only defects inside your perspective. Skip anything outside it, even if you notice it.
+- Find definitions, callers, and references with LSP or Serena first; text search supplements them for strings, config keys, SQL, and documents.
+- Read; do not run tests, scripts, or the product. The operator runs the checks that decide a verdict.
 - Apply the checklist item by item. For each item, decide whether the change satisfies it, reading the changed lines together with their callers, tests and fakes.
 - Every finding needs evidence you checked yourself: the changed line in the diff AND the code or rule location it conflicts with (file:line at the head). A finding without a checked location is not reported.
 - Severity: BLOCKER (a supported path returns a wrong result, loses data, or breaks a public contract), MAJOR (a reachable defect or a code-health defect the change introduces), MINOR, NIT. Do not inflate.
