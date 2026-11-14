@@ -20,6 +20,7 @@ Personal agent skills, one source copy per skill under [skills/](skills/). Each 
 | [problem-modeling](skills/problem-modeling/SKILL.md) | 해법 선택 전 문제의 입력·출력·경계 사례와 평가 기준 정의. |
 | [refactor](skills/refactor/SKILL.md) | 기능과 성능을 보존하는 리팩토링 계획·실행과 저장소 예방책 감사. |
 | [rv](skills/rv/SKILL.md) | Adversarial code, design, and PR review with evidence and follow-up findings. |
+| [swarm-review](skills/swarm-review/SKILL.md) | 코드 변경을 rv 항목 관점별 blind 로컬 모델 리뷰어 여러 세션과 운영자 한 세션의 검증·추가 라운드로 리뷰하고 리뷰 문서 하나를 돌려준다. |
 | [sucks](skills/sucks/SKILL.md) | Korean technical prose style rules for docs, issues, PR bodies, and comments. |
 | [task-graph](skills/task-graph/SKILL.md) | 여러 턴이 걸리는 작업을 태스크와 의존성의 유향 그래프로 계획하고 그 그래프에서 스케줄링한다. |
 | [tdd-is-dead](skills/tdd-is-dead/SKILL.md) | 범위와 의도를 먼저 파악하고 최소 테스트로 검증하는 코드 작업 순서와, 외부 PoC를 ds 이식 설계로 제품에 반영하는 경로. TDD식 작성-실행-수정 반복을 금지한다. |
