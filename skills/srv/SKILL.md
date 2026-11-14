@@ -3,7 +3,7 @@ name: swarm-review
 description: "Swarm review (srv) of a code change: many blind local-model reviewer sessions each apply one perspective built from rv's review items to the diff, one operator session verifies every suggestion against the code, sends narrow follow-up questions to new reviewers for further rounds, and returns one review document. Use when the user calls /srv, /swarm-review, $srv, or $swarm-review, or asks for a swarm review of a PR, branch, or commit range (코드 변경을 여러 리뷰어 세션으로 훑어 리뷰할 때)."
 metadata:
   author: hrlee
-  version: "0.1.0"
+  version: "0.2.0"
   domain: workflow
   triggers: srv, swarm-review, swarm review, 스웜 리뷰
   dependencies:
@@ -97,4 +97,6 @@ One run so far: PR #1415 of graphai-repository/enterprise-memory (2026-11-15, he
 
 Precision is CONFIRMED / (CONFIRMED + REJECTED) per suggestion; it measures how often a suggestion was true, not how many defects the review found. Two of the three BLOCKER clusters came from the follow-up rounds, and round 3 still added one when the cap stopped the run, so the cap, not convergence, ended it. Follow-up questions were far more precise than the perspective sweep. A first-round reviewer took 19 to 45 minutes against a 15-minute box, so the run is many times one LLM call; the swarm is not yet fast. The operator confirmed several clusters by running small scripts against the head's own functions in the review directory, which settled what reading alone left PLAUSIBLE.
 
-Unmeasured: recall against a single strong-model rv review of the same head (a comparison on the same input is in progress), whether three sessions per perspective beat one on code, and the effect of a prepared analysis config on reviewer precision. prv's plan trials agree on one point: agreement among reviewers was not evidence.
+Against a single strong-model review. The same head was reviewed by one Codex session running rv alone, and a separate session compared the two review documents without knowing which was which (`review-compare-1/COMPARE.md` of that run, 2026-11-15). Both documents' final findings were all correct (rv 2/2, srv 6/6). Splitting findings into causes that need different fixes, rv found 4 of the 7 known causes and srv 6: both found the three shared BLOCKER causes; only rv found a fourth BLOCKER (several excluded headings moving their reference names onto one body keep only one name), and only srv found a missing test (MAJOR) and two NITs. The judge preferred rv, because a missed BLOCKER outweighs a MAJOR and two NITs, and preferred srv's breakdown of the fix work. Two srv faults explain its miss: an item it cleared rested on a reproduction that skipped the product's structural post-processing, and a fix kept the current "nearest heading" behavior with the code as its only ground; `references/consolidate.md` now verifies both. The comparison covers one PR, and the srv document's narration of its own process made the comparison not fully blind.
+
+Unmeasured: whether three sessions per perspective beat one on code, and the effect of a prepared analysis config on reviewer precision. prv's plan trials agree on one point: agreement among reviewers was not evidence.
